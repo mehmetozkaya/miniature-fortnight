@@ -164,7 +164,8 @@ const checkoutBasket = async (event) => {
 const publishCheckoutBasketEvent = async (basketData) => {
     console.log("publishCheckoutBasketEvent");
 
-    try {        
+    try {
+        // eventbridge parameters for setting event to target system
         const params = {
             Entries: [
                 {
