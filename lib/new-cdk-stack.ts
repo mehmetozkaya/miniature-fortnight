@@ -19,7 +19,8 @@ export class NewCdkStack extends Stack {
     
     const apigateway = new SwnApiGateway(this, 'ApiGateway', {
       productMicroservices: microservices.productMicroservice,
-      basketMicroservices: microservices.basketMicroservice
+      basketMicroservices: microservices.basketMicroservice,
+      orderingMicroservices: microservices.orderingMicroservice
     });
 
     const eventbus = new SwnEventBus(this, 'EventBus', {
