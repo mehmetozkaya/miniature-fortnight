@@ -1,9 +1,53 @@
-import { QueryCommand, ScanCommand } from "@aws-sdk/client-dynamodb";
+import { PutItemCommand, QueryCommand, ScanCommand } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { ddbClient } from "./ddbClient";
 
 exports.handler = async function(event) {
-  console.log("request:", JSON.stringify(event, undefined, 2));  
+  console.log("request:", JSON.stringify(event, undefined, 2));
+
+  const eventType = event['detail-type'];
+  if (eventType !== undefined) {
+    // EventBridge Invocation
+    await eventBridgeInvocation(event);
+  } else {
+    // API Gateway Invocation
+    await apiGatewayInvocation(event);
+  }  
+};
+
+const eventBridgeInvocation = async (event) => {
+  // create order item into db
+  await createOrder(event);
+}
+
+const createOrder = async (event) => {
+  try {
+    console.log(`createOrder function. event : "${event}"`);
+
+    //const basketCheckoutEvent = event.detail;  
+    const basketCheckoutEvent = JSON.parse(event.detail);
+
+    // set orderDate
+    const orderDate = new Date().toISOString();
+    basketCheckoutEvent.orderDate = orderDate;
+    console.log(basketCheckoutEvent);
+
+    const params = {
+      TableName: process.env.DYNAMODB_TABLE_NAME,
+      Item: marshall(basketCheckoutEvent || {})
+    };
+
+    const createResult = await ddbClient.send(new PutItemCommand(params));
+    console.log(createResult);
+    return createResult;
+
+  } catch(e) {
+    console.error(e);
+    throw e;
+  }
+}
+
+const apiGatewayInvocation = async (event) => {
   // GET /order	
 	// GET /order/{userName}
   let body;
@@ -40,8 +84,8 @@ exports.handler = async function(event) {
           errorStack: e.stack,
         })
       };
-  }
-};
+  }  
+}
 
 const getOrder = async (event) => {
   console.log("getOrder");
