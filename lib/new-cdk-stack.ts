@@ -12,13 +12,13 @@ export class NewCdkStack extends Stack {
     const database = new SwnDatabase(this, 'Database');
 
     const microservices = new SwnMicroservices(this, 'Microservices', {
-      productsTable: database.productsTable,
+      productTable: database.productTable,
       basketTable: database.basketTable,
       orderTable: database.orderTable
     });
     
     const apigateway = new SwnApiGateway(this, 'ApiGateway', {
-      productsMicroservices: microservices.productsMicroservice,
+      productMicroservices: microservices.productMicroservice,
       basketMicroservices: microservices.basketMicroservice
     });
 

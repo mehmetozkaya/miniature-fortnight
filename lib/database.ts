@@ -4,7 +4,7 @@ import { RemovalPolicy } from "aws-cdk-lib";
 
 export class SwnDatabase extends Construct {
 
-    public readonly productsTable: ITable;
+    public readonly productTable: ITable;
     public readonly basketTable: ITable;
     public readonly orderTable: ITable;
 
@@ -12,7 +12,7 @@ export class SwnDatabase extends Construct {
         super(scope, id);
 
         //product table
-        this.productsTable = this.createProductTable();
+        this.productTable = this.createProductTable();
         //basket table
         this.basketTable = this.createBasketTable(); 
         //order table

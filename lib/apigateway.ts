@@ -3,7 +3,7 @@ import { IFunction } from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 
 interface SwnApiGatewayProps {
-    productsMicroservices: IFunction,
+    productMicroservices: IFunction,
     basketMicroservices: IFunction
 }
 
@@ -13,28 +13,27 @@ export class SwnApiGateway extends Construct {
         super(scope, id);
 
         // Product Microservices
-        this.createProductApi(props.productsMicroservices);
-
+        this.createProductApi(props.productMicroservices);
         // Basket Microservices
         this.createBasketApi(props.basketMicroservices);
     }
 
-    private createProductApi(productsMicroservices: IFunction) {
+    private createProductApi(productMicroservices: IFunction) {
         
-        const apigw = new LambdaRestApi(this, 'productsApi', {
-            restApiName: 'Products Service',
-            handler: productsMicroservices,
+        const apigw = new LambdaRestApi(this, 'productApi', {
+            restApiName: 'Product Service',
+            handler: productMicroservices,
             proxy: false
         });
     
-        const products = apigw.root.addResource('products');
-        products.addMethod('GET');  // GET /products
-        products.addMethod('POST');  // POST /products
+        const product = apigw.root.addResource('product');
+        product.addMethod('GET');  // GET /product
+        product.addMethod('POST');  // POST /product
     
-        const singleProduct = products.addResource('{id}');
-        singleProduct.addMethod('GET');  // GET /products/{id}
-        singleProduct.addMethod('PUT'); // PUT /products/{id}
-        singleProduct.addMethod('DELETE'); // DELETE /products/{id}
+        const singleProduct = product.addResource('{id}');
+        singleProduct.addMethod('GET');  // GET /product/{id}
+        singleProduct.addMethod('PUT'); // PUT /product/{id}
+        singleProduct.addMethod('DELETE'); // DELETE /product/{id}
 
         return singleProduct;
     }

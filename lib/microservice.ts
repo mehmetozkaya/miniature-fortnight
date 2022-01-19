@@ -5,14 +5,14 @@ import { Construct } from "constructs";
 import { join } from "path";
 
 interface SwnMicroservicesProps {
-    productsTable: ITable;
+    productTable: ITable;
     basketTable: ITable;
     orderTable: ITable;
 }
 
 export class SwnMicroservices extends Construct {
 
-    public readonly productsMicroservice: NodejsFunction;
+    public readonly productMicroservice: NodejsFunction;
     public readonly basketMicroservice: NodejsFunction;
     public readonly orderingMicroservice: NodejsFunction;
 
@@ -20,14 +20,14 @@ export class SwnMicroservices extends Construct {
         super(scope, id);
 
         // product microservices
-        this.productsMicroservice = this.createProductFunction(props.productsTable);
+        this.productMicroservice = this.createProductFunction(props.productTable);
         // basket microservices
         this.basketMicroservice = this.createBasketFunction(props.basketTable);
         // ordering Microservice
         this.orderingMicroservice = this.createOrderingFunction(props.orderTable);
     }
 
-    private createProductFunction(productsTable: ITable) : NodejsFunction {
+    private createProductFunction(productTable: ITable) : NodejsFunction {
         const nodeJsFunctionProps: NodejsFunctionProps = {
             bundling: {
                 externalModules: [
@@ -36,7 +36,7 @@ export class SwnMicroservices extends Construct {
             },      
             environment: {
                 PRIMARY_KEY: 'id',
-                DYNAMODB_TABLE_NAME: productsTable.tableName,
+                DYNAMODB_TABLE_NAME: productTable.tableName,
             },
             runtime: Runtime.NODEJS_14_X,
         }
@@ -46,7 +46,7 @@ export class SwnMicroservices extends Construct {
             ...nodeJsFunctionProps,
         });
             
-        productsTable.grantReadWriteData(productFunction);
+        productTable.grantReadWriteData(productFunction);
         return productFunction;
     }
 
