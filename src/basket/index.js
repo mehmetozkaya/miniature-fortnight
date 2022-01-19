@@ -70,7 +70,7 @@ const getBasket = async (userName) => {
     try {
         const params = {
           TableName: process.env.DYNAMODB_TABLE_NAME,
-          Key: marshall({ PK: userName })
+          Key: marshall({ userName: userName })
         };
      
         const { Item } = await dbClient.send(new GetItemCommand(params));
@@ -128,7 +128,7 @@ const deleteBasket = async (userName) => {
     
       const params = {
           TableName: process.env.DYNAMODB_TABLE_NAME,
-          Key: marshall({ PK: userName }),
+          Key: marshall({ userName: userName }),
       };  
     
       const deleteResult = await dbClient.send(new DeleteItemCommand(params));
@@ -144,10 +144,10 @@ const deleteBasket = async (userName) => {
 const checkoutBasket = async (event) => {
     console.log("checkoutBasket");
     
-    // Get existing basket with items
-    // create an event json object with basket items
-    // publish an event to eventbridge - this will subscribe by order microservice and start ordering process.
-    // remove existing basket
+    // 1- Get existing basket with items
+    // 2- create an event json object with basket items, calculate totalprice, prepare order create json data to send ordering ms 
+    // 3- publish an event to eventbridge - this will subscribe by order microservice and start ordering process.
+    // 4- remove existing basket
 
     const requestBody = JSON.parse(event.body); // expected request payload : { userName : swn }
     if (requestBody == null || requestBody.userName == null) {
@@ -155,6 +155,9 @@ const checkoutBasket = async (event) => {
     }
     
     const basket = await getBasket(requestBody.userName);
+
+    // TODO -- prepare order payload -- calculate totalprice and combine body and basket items
+
     const publishedEvent = await publishCheckoutBasketEvent(basket);        
     await deleteBasket(requestBody.userName);
 

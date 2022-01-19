@@ -24,13 +24,17 @@ const createOrder = async (event) => {
   try {
     console.log(`createOrder function. event : "${event}"`);
 
-    //const basketCheckoutEvent = event.detail;  
-    const basketCheckoutEvent = JSON.parse(event.detail);
+    const basketCheckoutEvent = event.detail;
+    console.log(basketCheckoutEvent);
+    console.log(basketCheckoutEvent.userName);  
 
     // set orderDate
     const orderDate = new Date().toISOString();
     basketCheckoutEvent.orderDate = orderDate;
+    basketCheckoutEvent.PK = basketCheckoutEvent.userName;
+    basketCheckoutEvent.SK = basketCheckoutEvent.orderDate;
     console.log(basketCheckoutEvent);
+    console.log(basketCheckoutEvent.orderDate);
 
     const params = {
       TableName: process.env.DYNAMODB_TABLE_NAME,
