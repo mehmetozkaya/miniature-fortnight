@@ -8,79 +8,60 @@ export class SwnDatabase extends Construct {
     public readonly basketTable: ITable;
     public readonly orderTable: ITable;
 
-    constructor(scope: Construct, id: string){
+    constructor(scope: Construct, id: string) {
         super(scope, id);
 
-         //product table
-         this.productsTable = this.createProductTable();
-         
-         //basket table
+        //product table
+        this.productsTable = this.createProductTable();
+        //basket table
         this.basketTable = this.createBasketTable(); 
-
-         //order table
-         this.orderTable = this.createOrderTable(); 
+        //order table
+        this.orderTable = this.createOrderTable(); 
     }
 
+    // product : PK: id -- name - description - imageFile - price - category
     private createProductTable() : ITable {
-        const dynamoTable  = new Table(this, 'products', {
-           partitionKey: {
-           name: 'id',
-           type: AttributeType.STRING
-           },
-           tableName: 'products',
-           removalPolicy: RemovalPolicy.DESTROY,
-           billingMode: BillingMode.PAY_PER_REQUEST
-       });
-
-       return dynamoTable;
-   }
-
-    private createBasketTable() : ITable {
-    const basketTable = new Table(this, 'BasketTable', {
-        partitionKey: {
-          name: 'PK',
-          type: AttributeType.STRING,
-        },
-        // sortKey: {
-        //   name: 'SK',
-        //   type: AttributeType.STRING,
-        // },
-        tableName: 'basket',
-        removalPolicy: RemovalPolicy.DESTROY,
-        billingMode: BillingMode.PAY_PER_REQUEST
-    });
-
-    return basketTable;
-    // basketTable.addGlobalSecondaryIndex({
-    //     indexName: 'GSI1',
-    //     partitionKey: {
-    //       name: 'SK',
-    //       type: AttributeType.STRING,
-    //     },
-    //     sortKey: {
-    //       name: 'PK',
-    //       type: AttributeType.STRING,
-    //     },
-    //     //projectionType: ProjectionType.INCLUDE,
-    //     nonKeyAttributes: ['DateUploaded', 'Processed', 'Thumbnail', 'Uploader', 'FileSize', 'Name', 'Owner']
-    // });
+      const dynamoTable  = new Table(this, 'product', {
+          partitionKey: {
+          name: 'id',
+          type: AttributeType.STRING
+          },
+          tableName: 'product',
+          removalPolicy: RemovalPolicy.DESTROY,
+          billingMode: BillingMode.PAY_PER_REQUEST
+      });
+      return dynamoTable;
     }
 
+   // basket : PK: userName -- items (SET-MAP object) { quantity - color - price - productId - productName }
+    private createBasketTable() : ITable {
+      const basketTable = new Table(this, 'basket', {
+          partitionKey: {
+            name: 'userName',
+            type: AttributeType.STRING,
+          },
+          tableName: 'basket',
+          removalPolicy: RemovalPolicy.DESTROY,
+          billingMode: BillingMode.PAY_PER_REQUEST
+      });
+      return basketTable;
+    }
+
+    // order : PK: userName - SK: orderDate -- totalPrice - firstName - lastName - email - address - paymentMethod - cardInfo
     private createOrderTable() : ITable {
-        const orderTable = new Table(this, 'OrderTable', {
-            partitionKey: {
-              name: 'PK',
-              type: AttributeType.STRING,
-            },
-            sortKey: {
-              name: 'SK',
-              type: AttributeType.STRING,
-            },
-            tableName: 'order',
-            removalPolicy: RemovalPolicy.DESTROY,
-            billingMode: BillingMode.PAY_PER_REQUEST
-        });
-    
-        return orderTable;
+      const orderTable = new Table(this, 'order', {
+          partitionKey: {
+            name: 'PK',
+            type: AttributeType.STRING,
+          },
+          sortKey: {
+            name: 'SK',
+            type: AttributeType.STRING,
+          },
+          tableName: 'order',
+          removalPolicy: RemovalPolicy.DESTROY,
+          billingMode: BillingMode.PAY_PER_REQUEST
+      });    
+      return orderTable;
     }
 }
