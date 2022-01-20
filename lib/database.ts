@@ -51,17 +51,17 @@ export class SwnDatabase extends Construct {
     private createOrderTable() : ITable {
       const orderTable = new Table(this, 'order', {
           partitionKey: {
-            name: 'PK',
+            name: 'userName',
             type: AttributeType.STRING,
           },
           sortKey: {
-            name: 'SK',
+            name: 'orderDate',
             type: AttributeType.STRING,
           },
           tableName: 'order',
           removalPolicy: RemovalPolicy.DESTROY,
           billingMode: BillingMode.PAY_PER_REQUEST
-      });    
+      });
       return orderTable;
     }
 }

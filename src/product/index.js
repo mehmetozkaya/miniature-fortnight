@@ -1,6 +1,7 @@
 import { DeleteItemCommand, GetItemCommand, PutItemCommand, QueryCommand, ScanCommand, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { dbClient } from "./dbClient";
+import { v4 as uuidv4 } from 'uuid';
 
 exports.handler = async function(event) {	    
     console.log("request:", JSON.stringify(event, undefined, 2));    
@@ -121,11 +122,15 @@ const getProductsByCategory = async (event) => {
 const createProduct = async (event) => {
   try {
     console.log(`createProduct function. event : "${event}"`);
-
-    const requestBody = JSON.parse(event.body);
+    
+    const productRequest = JSON.parse(event.body);
+    // set productid
+    const productId = uuidv4();
+    productRequest.id = productId;
+    
     const params = {
       TableName: process.env.DYNAMODB_TABLE_NAME,
-      Item: marshall(requestBody || {})
+      Item: marshall(productRequest || {})
     };
 
     const createResult = await dbClient.send(new PutItemCommand(params));

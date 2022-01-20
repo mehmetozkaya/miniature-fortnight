@@ -42,8 +42,7 @@ export class SwnApiGateway extends Construct {
     }
 
     private createBasketApi(basketMicroservices: IFunction) {
-
-        // basket table : username - Items { productId, name, price, addedTime } - totalPrice => PK : username, SK:totalPrice, Attributes : JSON Items object
+        
         const apigw = new LambdaRestApi(this, 'basketApi', {
             restApiName: 'Basket Service',
             handler: basketMicroservices,

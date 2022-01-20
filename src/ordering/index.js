@@ -3,39 +3,34 @@ import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { ddbClient } from "./ddbClient";
 
 exports.handler = async function(event) {
-  console.log("request:", JSON.stringify(event, undefined, 2));
+  console.log("request:", JSON.stringify(event, undefined, 2));  
 
   const eventType = event['detail-type'];
   if (eventType !== undefined) {
     // EventBridge Invocation
     await eventBridgeInvocation(event);
   } else {
-    // API Gateway Invocation
-    await apiGatewayInvocation(event);
-  }  
+    // API Gateway Invocation -- return sync response
+    return await apiGatewayInvocation(event);
+  }
 };
 
 const eventBridgeInvocation = async (event) => {
+  console.log(`eventBridgeInvocation function. event : "${event}"`);
+  
   // create order item into db
-  await createOrder(event);
+  await createOrder(event.detail);
 }
 
-const createOrder = async (event) => {
+const createOrder = async (basketCheckoutEvent) => {
   try {
-    console.log(`createOrder function. event : "${event}"`);
+    console.log(`createOrder function. event : "${basketCheckoutEvent}"`);
 
-    const basketCheckoutEvent = event.detail;
-    console.log(basketCheckoutEvent);
-    console.log(basketCheckoutEvent.userName);  
-
-    // set orderDate
+    // set orderDate for SK of order dynamodb
     const orderDate = new Date().toISOString();
     basketCheckoutEvent.orderDate = orderDate;
-    basketCheckoutEvent.PK = basketCheckoutEvent.userName;
-    basketCheckoutEvent.SK = basketCheckoutEvent.orderDate;
     console.log(basketCheckoutEvent);
-    console.log(basketCheckoutEvent.orderDate);
-
+    
     const params = {
       TableName: process.env.DYNAMODB_TABLE_NAME,
       Item: marshall(basketCheckoutEvent || {})
@@ -100,7 +95,7 @@ const getOrder = async (event) => {
     const orderDate = event.queryStringParameters.orderDate; 
 
     const params = {
-      KeyConditionExpression: "PK = :userName and SK = :orderDate",
+      KeyConditionExpression: "userName = :userName and orderDate = :orderDate",
       ExpressionAttributeValues: {
         ":userName": { S: userName },
         ":orderDate": { S: orderDate }

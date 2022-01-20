@@ -149,23 +149,56 @@ const checkoutBasket = async (event) => {
     // 3- publish an event to eventbridge - this will subscribe by order microservice and start ordering process.
     // 4- remove existing basket
 
-    const requestBody = JSON.parse(event.body); // expected request payload : { userName : swn }
-    if (requestBody == null || requestBody.userName == null) {
-        throw new Error(`userName should exist in requestBody: "${event.body}"`);
+    const checkoutRequest = JSON.parse(event.body); // expected request payload : { userName : swn, attributes[firstName, lastName, email ..] }
+    if (checkoutRequest == null || checkoutRequest.userName == null) {
+        throw new Error(`userName should exist in checkoutRequest: "${checkoutRequest}"`);
     }
     
-    const basket = await getBasket(requestBody.userName);
+    // 1- Get existing basket with items
+    const basket = await getBasket(checkoutRequest.userName);
 
-    // TODO -- prepare order payload -- calculate totalprice and combine body and basket items
+    // 2- create an event json object with basket items, calculate totalprice, prepare order create json data to send ordering ms 
+    var checkoutPayload = prepareOrderPayload(checkoutRequest, basket);
 
-    const publishedEvent = await publishCheckoutBasketEvent(basket);        
-    await deleteBasket(requestBody.userName);
+    // 3- publish an event to eventbridge - this will subscribe by order microservice and start ordering process.
+    const publishedEvent = await publishCheckoutBasketEvent(checkoutPayload);
+
+    // 4- remove existing basket
+    await deleteBasket(checkoutRequest.userName);
 
     console.log(publishedEvent);
 }
 
-const publishCheckoutBasketEvent = async (basketData) => {
-    console.log("publishCheckoutBasketEvent");
+const prepareOrderPayload = (checkoutRequest, basket) => {    
+    console.log("prepareOrderPayload");
+    
+    // prepare order payload -> calculate totalprice and combine checkoutRequest and basket items
+    // aggregate and enrich request and basket data in order to create order payload    
+    try {
+
+        if (basket == null || basket.items == null) {
+            throw new Error(`basket should exist in items: "${basket}"`);
+        }
+
+        // calculate totalPrice
+        let totalPrice = 0;
+        basket.items.forEach(item => totalPrice = totalPrice + item.price);
+        checkoutRequest.totalPrice = totalPrice;
+        console.log(checkoutRequest);
+    
+        // copies all properties from basket into checkoutRequest
+        Object.assign(checkoutRequest, basket);
+        console.log("Success prepareOrderPayload, orderPayload:", checkoutRequest);
+        return checkoutRequest;
+
+      } catch(e) {
+        console.error(e);
+        throw e;
+    }    
+}
+
+const publishCheckoutBasketEvent = async (checkoutPayload) => {
+    console.log("publishCheckoutBasketEvent with payload :", checkoutPayload);
 
     try {
         // eventbridge parameters for setting event to target system
@@ -173,7 +206,7 @@ const publishCheckoutBasketEvent = async (basketData) => {
             Entries: [
                 {
                     Source: process.env.EVENT_SOURCE,
-                    Detail: JSON.stringify(basketData),
+                    Detail: JSON.stringify(checkoutPayload),
                     DetailType: process.env.EVENT_DETAILTYPE,
                     Resources: [ ],
                     EventBusName: process.env.EVENT_BUSNAME
